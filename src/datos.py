@@ -1,10 +1,10 @@
 import os
 import json
-import yfinance as yf
+import yfinance as yf # type: ignore
 from config import ACCESS_TOKEN
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
 
 
 
