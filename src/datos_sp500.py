@@ -5,8 +5,7 @@ from config import ACCESS_TOKEN
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
-
+from tqdm import tqdm
 
 
 #Obtener tickers del sp500 ( las mejores empresas de eeuu, hay 500 pero usaremos estas 5 que son las mas importantes)
@@ -66,24 +65,24 @@ tickers = [
 
 data_sp500 = {}
 
-#with open():
-for ticker in tickers:
+for ticker in tqdm(tickers):
     try:
-        accion = yf.download(ticker, start='2020-01-01', end='2021-01-01')
-        accion_json = accion.to_json(orient='records')
-        sp500 = json.loads(accion_json)
-        if sp500:
-            data_sp500[ticker] = sp500
+        accion = yf.download(ticker, start='2020-01-01', end='2021-01-01', progress=False)
+        
+        if not accion.empty:
+            accion = accion.reset_index()
+            accion['Date'] = accion['Date'].dt.strftime('%Y-%m-%d')
+            accion_json = accion.to_json(orient='records')
+            data_sp500[ticker] = json.loads(accion_json)
         else:
-            print("Error")
+            print(f"Sin datos para {ticker}")
 
     except Exception as e:
-        print(f"Se a producido un error en {ticker}: {e}")
-    imprime = enumerate(tickers)
-    print(f"Voy por el tiker{imprime}")
+        print(f"Error en {ticker}: {e}")
 
 with open("data/json_sp500.json", "w", encoding= "utf-8") as bolsa500:
     json.dump(data_sp500,bolsa500,indent=4,ensure_ascii=False)
+
 
 
 
