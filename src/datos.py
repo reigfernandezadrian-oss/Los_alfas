@@ -79,6 +79,8 @@ for ticker in tickers:
 
     except Exception as e:
         print(f"Se a producido un error en {ticker}: {e}")
+    imprime = enumerate(tickers)
+    print(f"Voy por el tiker{imprime}")
 
 with open("data/json_sp500.json", "w", encoding= "utf-8") as bolsa500:
     json.dump(data_sp500,bolsa500,indent=4,ensure_ascii=False)
