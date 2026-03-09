@@ -25,10 +25,6 @@ for ticker in tickers:
         else:
             print("Error")
 
-            
-
-
-    
     except Exception as e:
         print(f"Se a producido un error en {ticker}: {e}")
 
