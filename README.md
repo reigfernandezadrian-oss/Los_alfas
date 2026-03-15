@@ -6,5 +6,5 @@ Queremos hacer una aplicacion que se dedique a ver el mercado en tiempo real pud
 
 ### Deberes
 Rodrigo = De json a csv el sp500
-Adri = hacer notebooks con informacionn relevante
+Adri = hacer notebooks con informacionn relevante, 2 por accion (4).
 Carlos = hacer el codigo similar a sp500 pero con el ibex 35  y aparte tambien hacer su clean correspondiente para un csv.
