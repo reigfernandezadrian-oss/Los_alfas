@@ -1,7 +1,7 @@
 import os
 import json
 import yfinance as yf # type: ignore
-from config import ACCESS_TOKEN
+from datos_IBEX import ACCESS_TOKEN
 import pandas as pd # type: ignore
 import numpy as np # type: ignore
 import matplotlib.pyplot as plt # type: ignore
