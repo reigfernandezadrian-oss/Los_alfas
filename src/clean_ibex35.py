@@ -52,9 +52,18 @@ if columnas_precio_presentes:
 df = df.sort_values(by=["Ticker", "Date"]).reset_index(drop=True)
 
 # Guardar como CSV
-df.to_csv("data/clean_ibex35.csv", index=False, encoding="utf-8")
+df.to_csv("data/clean_Excel/clean_ibex35.csv", index=False, encoding="utf-8")
 
-print(f"CSV limpio guardado en data/clean_ibex35.csv")
+print(f"CSV limpio guardado en data/clean_Excel/clean_ibex35.csv")
+print(f"Total de filas: {len(df)}")
+print(f"Tickers encontrados: {df['Ticker'].nunique()}")
+print(f"\nPrimeras filas:")
+print(df.head(10))
+
+# Guardar como xlsx
+df.to_csv("data/clean_Excel/clean_ibex35.xlsx", index=False, encoding="utf-8")
+
+print(f"CSV limpio guardado en data/clean_Excel/clean_ibex35.xlsx")
 print(f"Total de filas: {len(df)}")
 print(f"Tickers encontrados: {df['Ticker'].nunique()}")
 print(f"\nPrimeras filas:")
