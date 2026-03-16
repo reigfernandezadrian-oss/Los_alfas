@@ -4,7 +4,7 @@ import os
 
 
 # Cargar el JSON con los datos del SP500
-with open("data/json_sp500.json", "r", encoding="utf-8") as f:
+with open("data/json/json_sp500.json", "r", encoding="utf-8") as f:
     data_sp500 = json.load(f)
 
 # Aplanar el JSON: cada ticker tiene una lista de registros con columnas MultiIndex

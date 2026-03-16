@@ -4,7 +4,7 @@ import os
 
 
 # Cargar el JSON con los datos del IBEX 35
-with open("data/json_ibex35.json", "r", encoding="utf-8") as f:
+with open("data/json/json_ibex35.json", "r", encoding="utf-8") as f:
     data_ibex35 = json.load(f)
 
 # Aplanar el JSON: cada ticker tiene una lista de registros con columnas MultiIndex
