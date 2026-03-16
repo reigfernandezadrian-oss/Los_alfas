@@ -67,7 +67,7 @@ data_sp500 = {}
 
 for ticker in tqdm(tickers):
     try:
-        accion = yf.download(ticker, start='2020-01-01', end='2021-01-01', progress=False)
+        accion = yf.download(ticker, start='2020-01-01', end='2025-01-01', progress=False)
         
         if not accion.empty:
             accion = accion.reset_index()
