@@ -2,9 +2,12 @@ import json
 import pandas as pd
 import os
 
+# Obtener la ruta base del proyecto (un nivel arriba de /src)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 # Cargar el JSON con los datos del IBEX 35
-with open("data/json_ibex35.json", "r", encoding="utf-8") as f:
+with open(os.path.join(DATA_DIR, "json_ibex35.json"), "r", encoding="utf-8") as f:
     data_ibex35 = json.load(f)
 
 # Aplanar el JSON: cada ticker tiene una lista de registros con columnas MultiIndex
@@ -52,7 +55,7 @@ if columnas_precio_presentes:
 df = df.sort_values(by=["Ticker", "Date"]).reset_index(drop=True)
 
 # Guardar como CSV
-df.to_csv("data/clean_ibex35.csv", index=False, encoding="utf-8")
+df.to_csv(os.path.join(DATA_DIR, "clean_ibex35.csv"), index=False, encoding="utf-8")
 
 print(f"CSV limpio guardado en data/clean_ibex35.csv")
 print(f"Total de filas: {len(df)}")
