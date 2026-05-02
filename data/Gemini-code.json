@@ -1,0 +1,18 @@
+{
+  "AAPL": [
+    {
+      "title": "Apple alcanza máximos históricos en ventas",
+      "link": "https://...",
+      "publisher": "Reuters",
+      "sentiment": "positivo"
+    }
+  ],
+  "SAN.MC": [
+    {
+      "title": "El sector bancario cae tras los nuevos tipos",
+      "link": "https://...",
+      "publisher": "Expansión",
+      "sentiment": "negativo"
+    }
+  ]
+}
