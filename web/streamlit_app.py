@@ -691,13 +691,13 @@ def main():
         except Exception:
             gemini_news = {}
 
-        # Mostrar SOLO las dos primeras noticias de Gemini justo debajo del título
+        # Mostrar las primeras cinco noticias de Gemini justo debajo del título
         gemini_items = []
         for symbol, news_list in gemini_news.items():
             for noticia in news_list:
                 gemini_items.append((symbol, noticia))
         st.markdown("<div style='display: flex; flex-direction: row; gap: 18px; overflow-x: auto; width: 100%; margin-bottom: 18px;'>", unsafe_allow_html=True)
-        for symbol, noticia in gemini_items[:2]:
+        for symbol, noticia in gemini_items:
             title = noticia.get('title', 'Sin título')
             link = noticia.get('link', '#')
             publisher = noticia.get('publisher', 'Gemini')
@@ -725,27 +725,8 @@ def main():
             st.markdown(f"<div style='min-width: 340px; flex: 0 0 340px;'>", unsafe_allow_html=True)
             render_news_section(symbol, news_data)
             st.markdown("</div>", unsafe_allow_html=True)
-        # Noticias destacadas (Gemini-code.json, solo las que no están ya arriba)
-        for symbol, noticia in gemini_items[2:]:
-            title = noticia.get('title', 'Sin título')
-            link = noticia.get('link', '#')
-            publisher = noticia.get('publisher', 'Gemini')
-            sentiment_label = noticia.get('sentiment', 'neutral')
-            style = get_sentiment_style(sentiment_label)
-            st.markdown(f"""
-            <div style='min-width: 340px; flex: 0 0 340px;'>
-                <div style=\"background-color: #12243a; padding: 15px; border-radius: 10px; border-left: 4px solid {style['color']}; margin-bottom: 10px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between;\">
-                    <div style=\"display: flex; justify-content: space-between; margin-bottom: 5px;\">
-                        <p style=\"color: #8899ac; font-size: 11px; margin: 0; text-transform: uppercase;\">{publisher} • {symbol}</p>
-                        <span style=\"font-size: 12px; background-color: {style['bg']}; color: {style['color']}; padding: 2px 8px; border-radius: 10px; font-weight: bold;\">
-                            {style['icon']} {sentiment_label.upper()}
-                        </span>
-                    </div>
-                    <a href=\"{link}\" target=\"_blank\" style=\"color: white; text-decoration: none; font-weight: bold; font-size: 14px; line-height: 1.2;\">{title}</a>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        # Noticias destacadas (Gemini-code.json) - Eliminado para evitar repeticiones
+        # st.markdown("</div>", unsafe_allow_html=True)
         render_favorites_section(sp500_stats, ibex35_stats)
   
         st.markdown("---")
