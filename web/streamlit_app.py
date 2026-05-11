@@ -111,7 +111,7 @@ def load_data():
     sp500_path = os.path.join(parent_dir, 'data', 'json_sp500.json')
     ibex35_path = os.path.join(parent_dir, 'data', 'json_ibex35.json')
     # Ajuste de ruta para noticias según tu estructura
-    news_path = os.path.join(parent_dir, 'data', 'json', 'news.json')
+    news_path = os.path.join(parent_dir, 'data', 'Tickets.json')
 
     # Cargar datos de índices
     with open(sp500_path, 'r') as f:
@@ -248,16 +248,19 @@ def render_market_sentiment(all_stats):
 
 def render_news_section(symbol, news_dict):
     data = news_dict.get(symbol)
-    if data:
-        noticia = data[0] if isinstance(data, list) else data
+    if not data:
+        return
+    noticias = data if isinstance(data, list) else [data]
+    for noticia in noticias:
         title = noticia.get('title', 'Sin título')
         link = noticia.get('link', '#')
         publisher = noticia.get('publisher', 'Noticias')
         sentiment_label = noticia.get('sentiment', 'neutral')
-        reason = noticia.get('reason', 'Sin motivo disponible')
+        reason = noticia.get('reason', '')
         style = get_sentiment_style(sentiment_label)
+        reason_html = f"<div style='color: #00aaff; font-size: 13px; margin-top: 6px;'>{reason}</div>" if reason else ""
         st.markdown(f"""
-        <div style="background-color: #12243a; padding: 15px; border-radius: 10px; border-left: 4px solid {style['color']}; margin-bottom: 10px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between;">
+        <div style="background-color: #12243a; padding: 15px; border-radius: 10px; border-left: 4px solid {style['color']}; margin-bottom: 10px; display: flex; flex-direction: column; justify-content: space-between;">
             <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
                 <p style="color: #8899ac; font-size: 11px; margin: 0; text-transform: uppercase;">{publisher} • {symbol}</p>
                 <span style="font-size: 12px; background-color: {style['bg']}; color: {style['color']}; padding: 2px 8px; border-radius: 10px; font-weight: bold;">
@@ -265,7 +268,7 @@ def render_news_section(symbol, news_dict):
                 </span>
             </div>
             <a href="{link}" target="_blank" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px; line-height: 1.2;">{title}</a>
-            <div style="color: #00aaff; font-size: 13px; margin-top: 6px;">{reason}</div>
+            {reason_html}
         </div>
         """, unsafe_allow_html=True)
 
@@ -415,6 +418,108 @@ def render_advisor_page(sp500_data, ibex35_data):
         # Mostrar pequeño gráfico de contexto
         history = get_stock_history(selected, sp500_data, ibex35_data)
         st.plotly_chart(create_graph(history), use_container_width=True)
+def render_stock_detail_page(symbol, sp500_data, ibex35_data, news_data, all_stats):
+    """Página de detalle completo de una acción."""
+    prev_page = st.session_state.get('prev_page', 'main')
+    if st.button("←", key="back_from_stock_detail"):
+        st.session_state.current_page = prev_page
+        st.rerun()
+
+    stats = all_stats.get(symbol, {})
+    price = stats.get('latest_close', 0)
+    pct = stats.get('percent_change', 0)
+    vol = stats.get('volume', 0)
+    color = '#00c853' if pct >= 0 else '#d32f2f'
+
+    st.markdown(f"<h1 style='color: white; font-size: 48px;'>{symbol}</h1>", unsafe_allow_html=True)
+    st.markdown(f"""
+    <div style='display: flex; gap: 20px; margin-bottom: 20px;'>
+        <div style='background: #12243a; padding: 20px; border-radius: 10px; border: 1px solid #2c3f57; flex: 1; text-align: center;'>
+            <div style='color: #8899ac; font-size: 12px; text-transform: uppercase;'>Precio</div>
+            <div style='color: white; font-size: 28px; font-weight: bold;'>${price:,.2f}</div>
+        </div>
+        <div style='background: #12243a; padding: 20px; border-radius: 10px; border: 1px solid {color}; flex: 1; text-align: center;'>
+            <div style='color: #8899ac; font-size: 12px; text-transform: uppercase;'>Cambio</div>
+            <div style='color: {color}; font-size: 28px; font-weight: bold;'>{pct:+.2f}%</div>
+        </div>
+        <div style='background: #12243a; padding: 20px; border-radius: 10px; border: 1px solid #2c3f57; flex: 1; text-align: center;'>
+            <div style='color: #8899ac; font-size: 12px; text-transform: uppercase;'>Volumen</div>
+            <div style='color: white; font-size: 28px; font-weight: bold;'>{vol:,}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    history = get_stock_history(symbol, sp500_data, ibex35_data)
+    if history:
+        fig = create_graph(history)
+        fig.update_layout(height=400)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.warning(f"No hay datos históricos para {symbol}")
+
+    rec, reason, rec_color = get_recommendation(symbol, sp500_data, ibex35_data)
+    st.markdown(f"""
+    <div style='background: #12243a; padding: 25px; border-radius: 12px; border: 2px solid {rec_color}; text-align: center; margin: 20px 0;'>
+        <div style='color: #8899ac; font-size: 14px; text-transform: uppercase; margin-bottom: 8px;'>Señal</div>
+        <div style='color: {rec_color}; font-size: 42px; font-weight: bold;'>{rec}</div>
+        <div style='color: #8899ac; font-size: 16px; margin-top: 8px;'>{reason}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<h3 style='color: white;'>Última Noticia</h3>", unsafe_allow_html=True)
+    render_news_section(symbol, news_data)
+
+
+def render_index_page(title, index_key, data_dict, stats, news_data, sp500_data, ibex35_data):
+    """Página de detalle de un índice con tabla de empresas clickeables."""
+    if st.button("←", key=f"back_from_{index_key}"):
+        st.session_state.current_page = "main"
+        st.rerun()
+
+    points, percent = calculate_index_price(data_dict)
+    percent_color = "#00ff00" if percent >= 0 else "#ff4444"
+    sign = "+" if percent >= 0 else ""
+
+    st.markdown(f"""
+    <div style='background: #001a33; padding: 25px; border-radius: 10px; border-top: 3px solid #00aaff; margin-bottom: 20px;'>
+        <div style='display: flex; align-items: center; gap: 12px;'>
+            <h1 style='color: white; margin: 0; font-size: 44px;'>{title}</h1>
+            <div style='color: {percent_color}; font-size: 22px; font-weight: bold;'>{sign}{percent:.2f}%</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if points:
+        fig = create_graph(points)
+        fig.update_layout(height=350)
+        st.plotly_chart(fig, use_container_width=True)
+
+    st.markdown("<h2 style='color: white; margin-top: 30px;'>Empresas del Índice</h2>", unsafe_allow_html=True)
+
+    # Header de la tabla
+    hcols = st.columns([2, 2, 2, 2, 1])
+    for col, label in zip(hcols, ["Símbolo", "Precio", "Cambio %", "Volumen", ""]):
+        col.markdown(f"<span style='color: #8899ac; font-size: 12px; text-transform: uppercase; font-weight: bold;'>{label}</span>", unsafe_allow_html=True)
+    st.markdown("<hr style='border: 1px solid #2c3f57; margin: 5px 0;'>", unsafe_allow_html=True)
+
+    for symbol in sorted(stats.keys()):
+        s = stats[symbol]
+        pct = s['percent_change']
+        price = s['latest_close']
+        vol = s['volume']
+        c = '#00c853' if pct >= 0 else '#d32f2f'
+        row = st.columns([2, 2, 2, 2, 1])
+        row[0].markdown(f"<span style='color: white; font-weight: bold;'>{symbol}</span>", unsafe_allow_html=True)
+        row[1].markdown(f"<span style='color: white;'>${price:,.2f}</span>", unsafe_allow_html=True)
+        row[2].markdown(f"<span style='color: {c}; font-weight: bold;'>{pct:+.2f}%</span>", unsafe_allow_html=True)
+        row[3].markdown(f"<span style='color: #8899ac;'>{vol:,}</span>", unsafe_allow_html=True)
+        if row[4].button("→", key=f"idx_{index_key}_{symbol}"):
+            st.session_state.selected_stock = symbol
+            st.session_state.prev_page = index_key
+            st.session_state.current_page = "stock_detail"
+            st.rerun()
+
+
 def render_full_graph_page(title, data_dict, is_index=True, symbol=None):
     """Página para ver cualquier gráfica en grande."""
     if st.button("←", key=f"back_from_{title}"):
@@ -448,8 +553,10 @@ def render_index_panel(title, data_dict):
         st.plotly_chart(create_graph(points), use_container_width=False)
         # Botón para ver en grande
         if st.button("→", key=f"full_{title}", help=f"Ver {title} en grande"):
-            st.session_state.current_page = f"full_{title.lower().replace(' ', '')}"
-            st.rerun()
+            if "500" in title:
+                st.switch_page("pages/SP500.py")
+            else:
+                st.switch_page("pages/IBEX_35.py")
 # Ejemplo de lógica para el "Market Pulse"
 def render_market_pulse(all_stats):
     ups = len([s for s in all_stats.values() if s['percent_change'] > 0])
@@ -476,10 +583,12 @@ def main():
         st.session_state.current_page = "main"
 
     sp500_data, ibex35_data, news_data = load_data()
+    sp500_stats = calculate_stock_stats(sp500_data)
+    ibex35_stats = calculate_stock_stats(ibex35_data)
+    all_stats = {**sp500_stats, **ibex35_stats}
 
     # 2. Selector de página
     if st.session_state.current_page == "comparison":
-        # Si estamos en modo comparador, ejecutamos la función de la otra página
         render_comparison_page(sp500_data, ibex35_data)
     elif st.session_state.current_page == "advisor":
         render_advisor_page(sp500_data, ibex35_data)
@@ -489,6 +598,12 @@ def main():
         render_full_graph_page("IBEX 35", ibex35_data)
     elif st.session_state.current_page == "full_ticker":
         render_full_graph_page(st.session_state.selected_ticker_full, (sp500_data, ibex35_data), is_index=False, symbol=st.session_state.selected_ticker_full)
+    elif st.session_state.current_page == "stock_detail":
+        render_stock_detail_page(st.session_state.selected_stock, sp500_data, ibex35_data, news_data, all_stats)
+    elif st.session_state.current_page == "index_sp500":
+        render_index_page("S&P 500", "index_sp500", sp500_data, sp500_stats, news_data, sp500_data, ibex35_data)
+    elif st.session_state.current_page == "index_ibex35":
+        render_index_page("IBEX 35", "index_ibex35", ibex35_data, ibex35_stats, news_data, sp500_data, ibex35_data)
     else:
         # Si estamos en la página principal, ejecutamos todo el código original
         # Aquí empieza el bloque de tu código original:
@@ -498,9 +613,6 @@ def main():
         with col2:
             search_term = st.text_input("", placeholder="Search", label_visibility="collapsed")
 
-        sp500_stats = calculate_stock_stats(sp500_data)
-        ibex35_stats = calculate_stock_stats(ibex35_data)
-        all_stats = {**sp500_stats, **ibex35_stats}
         all_stocks = sort_stocks_by_value(all_stats)
 
         # --- ALERTAS MEJORADAS ---
@@ -588,9 +700,17 @@ def main():
                             <div style="color: {percent_color}; font-size: 12px; font-weight: bold;">{sign}{percent:.2f}%</div>
                         </div>
                         """, unsafe_allow_html=True)
-                        is_fav = symbol in st.session_state.favorites
-                        if st.button("⭐" if is_fav else "☆", key=f"btn_{symbol}"):
-                            toggle_favorite(symbol)
+                        btn_a, btn_b = st.columns(2)
+                        with btn_a:
+                            is_fav = symbol in st.session_state.favorites
+                            if st.button("⭐" if is_fav else "☆", key=f"btn_{symbol}"):
+                                toggle_favorite(symbol)
+                        with btn_b:
+                            if st.button("→", key=f"detail_{symbol}", help=f"Ver {symbol}"):
+                                st.session_state.selected_stock = symbol
+                                st.session_state.prev_page = "main"
+                                st.session_state.current_page = "stock_detail"
+                                st.rerun()
             else:
                 if search_term:
                     st.markdown(f"<div style='text-align: center; color: #ff4444; font-size: 16px; padding: 20px;'>No stocks found matching '{search_term}'</div>", unsafe_allow_html=True)
@@ -601,39 +721,7 @@ def main():
                 st.session_state.page += 1
                 st.rerun()
 
-        st.markdown("<div style='margin: 30px 0;'></div>", unsafe_allow_html=True)
-
-        # ... (después del bloque de botones de navegación y el carrusel de row[1])
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        
-        # SECCIÓN DE GRÁFICA DINÁMICA
-        if filtered_stocks:
-            # Creamos un selector para elegir qué ticker ver de los resultados filtrados
-            # Si el usuario busca "AAPL", solo aparecerá AAPL en el selector
-            ticker_list = [s[0] for s in filtered_stocks]
-            
-            selected_ticker = st.selectbox(
-                "Selecciona una acción para ver su gráfico detallado:",
-                options=ticker_list,
-                index=0, # Por defecto muestra la primera de la lista
-                key="ticker_selector"
-            )
-
-            if selected_ticker:
-                history = get_stock_history(selected_ticker, sp500_data, ibex35_data)
-                if history:
-                    st.markdown(f"<h3 style='color: white;'>Gráfico de Rendimiento: {selected_ticker}</h3>", unsafe_allow_html=True)
-                    # Reutilizamos tu función create_graph
-                    st.plotly_chart(create_graph(history), use_container_width=True)
-                    if st.button("→", key="full_ticker_btn", help="Ver esta gráfica a pantalla completa"):
-                        st.session_state.selected_ticker_full = selected_ticker
-                        st.session_state.current_page = "full_ticker"
-                        st.rerun()
-                else:
-                    st.warning(f"No hay datos históricos disponibles para {selected_ticker}")
-        
-        st.markdown("---") # Línea divisoria antes de los índices generales
+        st.markdown("---")
         
         # ... (continúa con el bloque col1, col2, col3 de los índices)
 
@@ -729,23 +817,5 @@ def main():
         # st.markdown("</div>", unsafe_allow_html=True)
         render_favorites_section(sp500_stats, ibex35_stats)
   
-        st.markdown("---")
-        col_nav_1, col_nav_2 = st.columns(2)
-        
-        with col_nav_1:
-            st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-            st.markdown("<h3 style='color: white;'>⚖️ Comparador de activos</h3>", unsafe_allow_html=True)
-            if st.button("→", key="go_to_comparison_final"):
-                st.session_state.current_page = "comparison"
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
-
-        with col_nav_2:
-            st.markdown("<div style='text-align: center;'>", unsafe_allow_html=True)
-            st.markdown("<h3 style='color: white;'>🤖 Advisor</h3>", unsafe_allow_html=True)
-            if st.button("→", key="go_to_advisor_final"):
-                st.session_state.current_page = "advisor"
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
 if __name__ == "__main__":
     main()
