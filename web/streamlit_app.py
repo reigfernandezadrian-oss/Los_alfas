@@ -36,64 +36,8 @@ st.markdown("""
         color: white;
     }
     
-    /* Configuración base de todos los botones */
-    .stButton button {
-        border-radius: 50% !important;
-        width: 40px !important;
-        height: 40px !important;
-        min-width: 40px !important;
-        min-height: 40px !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        padding: 0 !important;
-        font-size: 20px !important;
-        line-height: 1 !important;
-        
-        /* FUERZA EL FONDO TRANSPARENTE Y COLOR BLANCO */
-        background-color: transparent !important;
-        color: white !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    }
 
-    /* Efecto al pasar el ratón (Hover) */
-    .stButton button:hover {
-        background-color: rgba(0, 170, 255, 0.2) !important; /* Azul Viltrum suave */
-        border-color: #00aaff !important;
-        color: #00aaff !important;
-    }
-
-    /* Elimina el efecto de enfoque (borde rojo/naranja de Streamlit) */
-    .stButton button:focus {
-        box-shadow: none !important;
-        color: white !important;
-    }
-    
-    .stTextInput input {
-        background-color: #12243a !important;
-        color: white !important;
-        border: 1px solid #2c3f57 !important;
-        border-radius: 6px !important;
-    }
-            
-    /* Los botones dentro de columnas de filtro serán rectangulares */
-    div[data-testid="column"] .stButton button {
-        border-radius: 8px !important;
-        width: 100% !important;
-        height: 35px !important;
-        font-size: 14px !important;
-    }
-    /* Cambia el cursor a una mano cuando el botón tiene ayuda */
-    .stButton button[title] {
-        cursor: help !important;
-    }
-    /* Añade esto a tu bloque de style existente */
-    div[data-testid="stMetric"], .stMarkdown div[style*="background-color: #12243a"] {
-        border: 1px solid rgba(0, 170, 255, 0.2) !important;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3) !important;
-        transition: transform 0.2s ease-in-out;
-    }
-
+    # --- Custom IBEX35 Page ---
     div[data-testid="stMetric"]:hover {
         transform: translateY(-5px);
         border-color: #00aaff !important;
@@ -446,10 +390,15 @@ def render_index_panel(title, data_dict):
     
     if points:
         st.plotly_chart(create_graph(points), use_container_width=False)
-        # Botón para ver en grande
-        if st.button("→", key=f"full_{title}", help=f"Ver {title} en grande"):
-            st.session_state.current_page = f"full_{title.lower().replace(' ', '')}"
-            st.rerun()
+        # Botón para ver en grande o custom page
+        if title == "IBEX 35":
+            if st.button("→", key=f"custom_ibex35_btn", help=f"Ver {title} personalizado"):
+                st.session_state.current_page = "custom_ibex35"
+                st.rerun()
+        else:
+            if st.button("→", key=f"full_{title}", help=f"Ver {title} en grande"):
+                st.session_state.current_page = f"full_{title.lower().replace(' ', '')}"
+                st.rerun()
 # Ejemplo de lógica para el "Market Pulse"
 def render_market_pulse(all_stats):
     ups = len([s for s in all_stats.values() if s['percent_change'] > 0])
@@ -479,7 +428,6 @@ def main():
 
     # 2. Selector de página
     if st.session_state.current_page == "comparison":
-        # Si estamos en modo comparador, ejecutamos la función de la otra página
         render_comparison_page(sp500_data, ibex35_data)
     elif st.session_state.current_page == "advisor":
         render_advisor_page(sp500_data, ibex35_data)
@@ -487,11 +435,26 @@ def main():
         render_full_graph_page("S&P 500", sp500_data)
     elif st.session_state.current_page == "full_ibex35":
         render_full_graph_page("IBEX 35", ibex35_data)
+    elif st.session_state.current_page == "custom_ibex35":
+        render_custom_ibex35_page(ibex35_data)
     elif st.session_state.current_page == "full_ticker":
         render_full_graph_page(st.session_state.selected_ticker_full, (sp500_data, ibex35_data), is_index=False, symbol=st.session_state.selected_ticker_full)
+    elif st.session_state.current_page == "demo_page":
+        render_demo_page()
     else:
+        def render_demo_page():
+            st.title("Demo Page")
+            st.write("¡Esta es una nueva página de ejemplo funcionando correctamente!")
+            if st.button("Volver", key="back_from_demo"):
+                st.session_state.current_page = "main"
+                st.rerun()
         # Si estamos en la página principal, ejecutamos todo el código original
         # Aquí empieza el bloque de tu código original:
+        # Add a sidebar button to go to the demo page
+        with st.sidebar:
+            if st.button("Ir a la página demo", key="go_to_demo"):
+                st.session_state.current_page = "demo_page"
+                st.rerun()
         col1, col2 = st.columns([2, 3])
         with col1:
             st.markdown('<h2 style="margin: 0; color: white; font-family: Sharp;">VILTRUM STOCKS</h2>', unsafe_allow_html=True)
@@ -749,3 +712,62 @@ def main():
             st.markdown("</div>", unsafe_allow_html=True)
 if __name__ == "__main__":
     main()
+
+# --- Custom IBEX35 Page ---
+def render_custom_ibex35_page(ibex35_data):
+    import streamlit as st
+    # Top row: Logo (left), Search bar (right)
+    col_logo, col_search = st.columns([1, 3])
+    with col_logo:
+        st.markdown("""
+        <div style="text-align: left; padding: 10px 0 0 0;">
+            <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 80px; height: 80px;">
+                <circle cx="100" cy="95" r="75" stroke="white" stroke-width="12" />
+                <path d="M 35 60 L 65 60 L 95 120 L 95 180 Z" fill="white" />
+                <path d="M 165 60 L 135 60 L 105 120 L 105 180 Z" fill="white" />
+            </svg>
+            <div style="margin-top: 8px; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: 2px; text-transform: uppercase; font-family: Sharp;">VILTRUM</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_search:
+        search_term = st.text_input("", placeholder="Buscar acción en IBEX35", label_visibility="collapsed", key="ibex35_search")
+
+    # Main IBEX35 Graph
+    points, percent = calculate_index_price(ibex35_data)
+    st.markdown(f"<h1 style='color: white; text-align: center;'>IBEX 35</h1>", unsafe_allow_html=True)
+    if points:
+        fig = create_graph(points)
+        fig.update_layout(height=400)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.error("No se pudieron cargar los datos de IBEX35.")
+
+    # List all IBEX35 stocks below, sorted by value (latest_close)
+    ibex35_stats = calculate_stock_stats(ibex35_data)
+    sorted_stocks = sorted(ibex35_stats.items(), key=lambda x: -x[1]['latest_close'])
+    if search_term:
+        sorted_stocks = [item for item in sorted_stocks if search_term.lower() in item[0].lower()]
+
+    st.markdown("<h2 style='color: white; margin-top: 30px;'>Acciones IBEX35</h2>", unsafe_allow_html=True)
+    if sorted_stocks:
+        cols = st.columns(4)
+        for idx, (symbol, stats) in enumerate(sorted_stocks):
+            percent = stats.get('percent_change', 0)
+            percent_color = '#00c853' if percent >= 0 else '#d32f2f'
+            sign = '+' if percent >= 0 else ''
+            with cols[idx % 4]:
+                st.markdown(f"""
+                <div style='padding: 12px 8px; margin-bottom: 16px; text-align: center; font-size: 15px; border: 2px solid white; border-radius: 8px; box-sizing: border-box;'>
+                    <div style='font-weight: bold; color: white; font-size: 18px;'>{symbol}</div>
+                    <div style='color: {percent_color}; font-size: 16px; font-weight: bold;'>{sign}{percent:.2f}%</div>
+                    <div style='color: #00aaff; font-size: 15px;'>Último cierre: {stats['latest_close']:.2f}</div>
+                    <div style='color: #8899ac; font-size: 13px;'>Volumen: {stats['volume']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+    else:
+        st.info("No se encontraron acciones que coincidan con la búsqueda.")
+
+    # Back button
+    if st.button("← Volver", key="back_from_custom_ibex35"):
+        st.session_state.current_page = "main"
+        st.rerun()
