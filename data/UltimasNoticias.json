@@ -1,0 +1,62 @@
+{
+  "AAPL": [
+    {"title": "Apple lanza iPhone 18 con IA avanzada", "link": "https://apple.com/news1", "publisher": "Reuters", "sentiment": "positivo"}
+  ],
+  "MSFT": [
+    {"title": "Microsoft compra empresa de ciberseguridad española", "link": "https://msft.com/news2", "publisher": "El País", "sentiment": "positivo"}
+  ],
+  "TSLA": [
+    {"title": "Tesla presenta camión eléctrico en Madrid", "link": "https://tesla.com/news3", "publisher": "Bloomberg", "sentiment": "positivo"}
+  ],
+  "GOOGL": [
+    {"title": "Google abre nuevo centro de datos en Valencia", "link": "https://google.com/news4", "publisher": "TechCrunch", "sentiment": "positivo"}
+  ],
+  "AMZN": [
+    {"title": "Amazon lanza entregas en 1 hora en Barcelona", "link": "https://amazon.com/news5", "publisher": "Financial Times", "sentiment": "positivo"}
+  ],
+  "META": [
+    {"title": "Meta desarrolla gafas de realidad aumentada", "link": "https://meta.com/news6", "publisher": "The Verge", "sentiment": "positivo"}
+  ],
+  "NFLX": [
+    {"title": "Netflix produce serie española de éxito mundial", "link": "https://netflix.com/news7", "publisher": "Variety", "sentiment": "positivo"}
+  ],
+  "NVDA": [
+    {"title": "NVIDIA lanza nueva GPU para IA", "link": "https://nvidia.com/news8", "publisher": "Xataka", "sentiment": "positivo"}
+  ],
+  "SAN.MC": [
+    {"title": "Banco Santander anuncia récord de beneficios", "link": "https://santander.com/news9", "publisher": "Expansión", "sentiment": "positivo"}
+  ],
+  "IBE.MC": [
+    {"title": "Iberdrola firma acuerdo energético en México", "link": "https://iberdrola.com/news10", "publisher": "Cinco Días", "sentiment": "positivo"}
+  ],
+  "ITX.MC": [
+    {"title": "Inditex abre 100 nuevas tiendas en Asia", "link": "https://inditex.com/news11", "publisher": "El Mundo", "sentiment": "positivo"}
+  ],
+  "BBVA.MC": [
+    {"title": "BBVA digitaliza todos sus servicios en 2026", "link": "https://bbva.com/news12", "publisher": "ABC", "sentiment": "positivo"}
+  ],
+  "FER.MC": [
+    {"title": "Ferrovial construirá aeropuerto en Brasil", "link": "https://ferrovial.com/news13", "publisher": "Europa Press", "sentiment": "positivo"}
+  ],
+  "REP.MC": [
+    {"title": "Repsol descubre nuevo yacimiento en Argentina", "link": "https://repsol.com/news14", "publisher": "Reuters", "sentiment": "positivo"}
+  ],
+  "ANA.MC": [
+    {"title": "Acciona Agua gana contrato en Australia", "link": "https://acciona.com/news15", "publisher": "El Economista", "sentiment": "positivo"}
+  ],
+  "MEL.MC": [
+    {"title": "Meliá Hotels abre resort de lujo en Canarias", "link": "https://melia.com/news16", "publisher": "Hosteltur", "sentiment": "positivo"}
+  ],
+  "ACS.MC": [
+    {"title": "ACS lidera consorcio para tren de alta velocidad", "link": "https://acs.com/news17", "publisher": "La Vanguardia", "sentiment": "positivo"}
+  ],
+  "GRF.MC": [
+    {"title": "Grifols desarrolla tratamiento innovador", "link": "https://grifols.com/news18", "publisher": "El Confidencial", "sentiment": "positivo"}
+  ],
+  "Neutral1": [
+    {"title": "El mercado espera datos de inflación global", "link": "https://economia.com/news19", "publisher": "Bloomberg", "sentiment": "neutral"}
+  ],
+  "Neutral2": [
+    {"title": "La Fed mantiene tipos de interés estables", "link": "https://fed.com/news20", "publisher": "Reuters", "sentiment": "neutral"}
+  ]
+}

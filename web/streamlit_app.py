@@ -495,24 +495,22 @@ def render_index_panel(title, data_dict):
     
     if points:
         st.plotly_chart(create_graph(points), use_container_width=False)
-<<<<<<< HEAD
-        # Botón para ver en grande o custom page
-        if title == "IBEX 35":
-            if st.button("→", key=f"custom_ibex35_btn", help=f"Ver {title} personalizado"):
-                st.session_state.current_page = "custom_ibex35"
-                st.rerun()
-        else:
-            if st.button("→", key=f"full_{title}", help=f"Ver {title} en grande"):
-                st.session_state.current_page = f"full_{title.lower().replace(' ', '')}"
-                st.rerun()
-=======
-        # Botón para ver en grande
-        if st.button("→", key=f"full_{title}", help=f"Ver {title} en grande"):
-            if "500" in title:
-                st.switch_page("pages/SP500.py")
+        # Botón ancho debajo de la gráfica
+        button_style = """
+            <style>
+            .full-width-btn { width: 100%; display: block; margin-top: 12px; }
+            </style>
+        """
+        st.markdown(button_style, unsafe_allow_html=True)
+        btn_placeholder = st.empty()
+        if btn_placeholder.button("Más detalles →", key=f"full_{title}", help=f"Ver más detalles de {title}"):
+            if title == "S&P 500":
+                st.session_state.current_page = "index_sp500"
+            elif title == "IBEX 35":
+                st.session_state.current_page = "index_ibex35"
             else:
-                st.switch_page("pages/IBEX_35.py")
->>>>>>> ae217a6319a2307717416ee6f6c7499ae0ce6b32
+                st.session_state.current_page = f"index_{title.lower().replace(' ', '')}"
+            st.rerun()
 # Ejemplo de lógica para el "Market Pulse"
 def render_market_pulse(all_stats):
     ups = len([s for s in all_stats.values() if s['percent_change'] > 0])
@@ -552,21 +550,17 @@ def main():
         render_full_graph_page("S&P 500", sp500_data)
     elif st.session_state.current_page == "full_ibex35":
         render_full_graph_page("IBEX 35", ibex35_data)
-    elif st.session_state.current_page == "custom_ibex35":
-        render_custom_ibex35_page(ibex35_data)
+    # Eliminado el custom_ibex35 para que no se navegue a esa página
     elif st.session_state.current_page == "full_ticker":
         render_full_graph_page(st.session_state.selected_ticker_full, (sp500_data, ibex35_data), is_index=False, symbol=st.session_state.selected_ticker_full)
-<<<<<<< HEAD
     elif st.session_state.current_page == "demo_page":
         render_demo_page()
-=======
     elif st.session_state.current_page == "stock_detail":
         render_stock_detail_page(st.session_state.selected_stock, sp500_data, ibex35_data, news_data, all_stats)
     elif st.session_state.current_page == "index_sp500":
         render_index_page("S&P 500", "index_sp500", sp500_data, sp500_stats, news_data, sp500_data, ibex35_data)
     elif st.session_state.current_page == "index_ibex35":
         render_index_page("IBEX 35", "index_ibex35", ibex35_data, ibex35_stats, news_data, sp500_data, ibex35_data)
->>>>>>> ae217a6319a2307717416ee6f6c7499ae0ce6b32
     else:
         def render_demo_page():
             st.title("Demo Page")
@@ -581,9 +575,18 @@ def main():
             if st.button("Ir a la página demo", key="go_to_demo"):
                 st.session_state.current_page = "demo_page"
                 st.rerun()
-        col1, col2 = st.columns([2, 3])
+        col1, col2 = st.columns([1.2, 3])  # Make logo column a bit wider and closer
         with col1:
-            st.markdown('<h2 style="margin: 0; color: white; font-family: Sharp;">VILTRUM STOCKS</h2>', unsafe_allow_html=True)
+            st.markdown('''
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 70px; height: 70px;">
+                    <circle cx="100" cy="95" r="75" stroke="white" stroke-width="12" />
+                    <path d="M 35 60 L 65 60 L 95 120 L 95 180 Z" fill="white" />
+                    <path d="M 165 60 L 135 60 L 105 120 L 105 180 Z" fill="white" />
+                </svg>
+                <span style="font-size: 28px; font-weight: 700; color: #ffffff; letter-spacing: 2px; text-transform: uppercase; font-family: Sharp; margin-left: 8px;">VILTRUM STOCKS</span>
+            </div>
+            ''', unsafe_allow_html=True)
         with col2:
             search_term = st.text_input("", placeholder="Search", label_visibility="collapsed")
 
@@ -742,53 +745,77 @@ def main():
                 </div>
             """, unsafe_allow_html=True)
 
-        # --- SECCIÓN DE NOTICIAS HORIZONTAL UNIFICADA ---
-        st.markdown("<h2 style='color: white; font-size: 24px; text-align: center;'>Últimas Noticias</h2>", unsafe_allow_html=True)
-        news_symbols = [stock_tuple[0] for stock_tuple in current_stocks]
-        # Cargar noticias de Gemini-code.json
-        try:
-            gemini_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'Gemini-code.json')
-            with open(gemini_path, 'r', encoding='utf-8') as f:
-                gemini_news = json.load(f)
-        except Exception:
-            gemini_news = {}
 
-        # Mostrar las primeras cinco noticias de Gemini justo debajo del título
-        gemini_items = []
-        for symbol, news_list in gemini_news.items():
+        # --- SECCIÓN DE NOTICIAS PAGINADA ---
+        st.markdown("<h2 style='color: white; font-size: 24px; text-align: center;'>Últimas Noticias</h2>", unsafe_allow_html=True)
+        # Cargar y combinar noticias de Tickets.json y UltimasNoticias.json
+        try:
+            ultimas_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'UltimasNoticias.json')
+            with open(ultimas_path, 'r', encoding='utf-8') as f:
+                ultimas_news = json.load(f)
+        except Exception:
+            ultimas_news = {}
+        # Combinar news_data y ultimas_news en una sola lista
+        all_news_items = []
+        # Tickets.json
+        for symbol, news_list in news_data.items():
             for noticia in news_list:
-                gemini_items.append((symbol, noticia))
-        st.markdown("<div style='display: flex; flex-direction: row; gap: 18px; overflow-x: auto; width: 100%; margin-bottom: 18px;'>", unsafe_allow_html=True)
-        for symbol, noticia in gemini_items:
+                all_news_items.append((symbol, noticia))
+        # UltimasNoticias.json
+        for symbol, news_list in ultimas_news.items():
+            for noticia in news_list:
+                all_news_items.append((symbol, noticia))
+        # Ordenar por publisher y título para variedad (puedes cambiar esto por fecha si tienes)
+        all_news_items = sorted(all_news_items, key=lambda x: (x[1].get('publisher', ''), x[1].get('title', '')))
+
+        # Paginación: mostrar 5 noticias por página
+        if 'news_page' not in st.session_state:
+            st.session_state.news_page = 0
+        news_per_page = 5
+        total_news = len(all_news_items)
+        total_news_pages = (total_news + news_per_page - 1) // news_per_page
+        start_news = st.session_state.news_page * news_per_page
+        end_news = start_news + news_per_page
+        current_news = all_news_items[start_news:end_news]
+
+        st.markdown("<div style='display: flex; flex-direction: row; gap: 18px; overflow-x: auto; width: 100%;'>", unsafe_allow_html=True)
+        for symbol, noticia in current_news:
             title = noticia.get('title', 'Sin título')
             link = noticia.get('link', '#')
-            publisher = noticia.get('publisher', 'Gemini')
+            publisher = noticia.get('publisher', 'Noticias')
             sentiment_label = noticia.get('sentiment', 'neutral')
             style = get_sentiment_style(sentiment_label)
             st.markdown(f"""
             <div style='min-width: 340px; flex: 0 0 340px;'>
-                <div style=\"background-color: #12243a; padding: 15px; border-radius: 10px; border-left: 4px solid {style['color']}; margin-bottom: 10px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between;\">
-                    <div style=\"display: flex; justify-content: space-between; margin-bottom: 5px;\">
-                        <p style=\"color: #8899ac; font-size: 11px; margin: 0; text-transform: uppercase;\">{publisher} • {symbol}</p>
-                        <span style=\"font-size: 12px; background-color: {style['bg']}; color: {style['color']}; padding: 2px 8px; border-radius: 10px; font-weight: bold;\">
+                <div style="background-color: #12243a; padding: 15px; border-radius: 10px; border-left: 4px solid {style['color']}; margin-bottom: 10px; min-height: 120px; display: flex; flex-direction: column; justify-content: space-between;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <p style="color: #8899ac; font-size: 11px; margin: 0; text-transform: uppercase;">{publisher} • {symbol}</p>
+                        <span style="font-size: 12px; background-color: {style['bg']}; color: {style['color']}; padding: 2px 8px; border-radius: 10px; font-weight: bold;">
                             {style['icon']} {sentiment_label.upper()}
                         </span>
                     </div>
-                    <a href=\"{link}\" target=\"_blank\" style=\"color: white; text-decoration: none; font-weight: bold; font-size: 14px; line-height: 1.2;\">{title}</a>
+                    <a href="{link}" target="_blank" style="color: white; text-decoration: none; font-weight: bold; font-size: 14px; line-height: 1.2;">{title}</a>
                 </div>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # Ahora el carrusel de noticias principal (news.json + resto de Gemini)
-        st.markdown("<div style='display: flex; flex-direction: row; gap: 18px; overflow-x: auto; width: 100%;'>", unsafe_allow_html=True)
-        # Noticias principales (news.json)
-        for symbol in news_symbols:
-            st.markdown(f"<div style='min-width: 340px; flex: 0 0 340px;'>", unsafe_allow_html=True)
-            render_news_section(symbol, news_data)
-            st.markdown("</div>", unsafe_allow_html=True)
-        # Noticias destacadas (Gemini-code.json) - Eliminado para evitar repeticiones
-        # st.markdown("</div>", unsafe_allow_html=True)
+        # Botones de paginación
+        nav_cols = st.columns([1, 0.2, 16])
+        with nav_cols[0]:
+            if st.button("←", disabled=st.session_state.news_page == 0, key="news_prev"):
+                st.session_state.news_page -= 1
+                st.rerun()
+        # nav_cols[1] is just for spacing
+        with nav_cols[2]:
+            right_cols = st.columns([30, 1])
+            with right_cols[1]:
+                if st.button("→", disabled=st.session_state.news_page == total_news_pages-1, key="news_next"):
+                    st.session_state.news_page += 1
+                    st.rerun()
+
+
+
         render_favorites_section(sp500_stats, ibex35_stats)
   
 if __name__ == "__main__":
