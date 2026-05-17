@@ -170,17 +170,6 @@ def create_graph(data_points):
     except Exception as e:
         st.error(f"Error generando gráfica: {e}")
         return go.Figure()
-
-def render_index_panel(title, data_dict):
-    points, percent = calculate_index_price(data_dict)
-    percent_color = "#00ff00" if percent >= 0 else "#ff4444"
-    sign = "+" if percent >= 0 else ""
-    st.markdown(
-        f'<div style="background-color: #001a33; padding: 20px; border-radius: 8px; border-top: 3px solid #00aaff;"><div style="display: flex; align-items: center; gap: 8px;"><h1 style="color: white; margin: 0; font-size: 40px;">{title}</h1><div style="color: {percent_color}; font-size: 18px; font-weight: bold;">{sign}{percent:.2f}%</div></div></div>',
-        unsafe_allow_html=True
-    )
-    if points:
-        st.plotly_chart(create_graph(points), use_container_width=False)
 def render_market_sentiment(all_stats):
     ups = len([s for s in all_stats.values() if s['percent_change'] > 0])
     downs = len([s for s in all_stats.values() if s['percent_change'] < 0])
@@ -505,8 +494,10 @@ def render_index_panel(title, data_dict):
         btn_placeholder = st.empty()
         if btn_placeholder.button("Más detalles →", key=f"full_{title}", help=f"Ver más detalles de {title}"):
             if title == "S&P 500":
+                st.session_state.main_tab = 'S&P 500'
                 st.session_state.current_page = "index_sp500"
             elif title == "IBEX 35":
+                st.session_state.main_tab = 'IBEX 35'
                 st.session_state.current_page = "index_ibex35"
             else:
                 st.session_state.current_page = f"index_{title.lower().replace(' ', '')}"
@@ -531,6 +522,16 @@ def render_market_pulse(all_stats):
     """, unsafe_allow_html=True)
 
 def main():
+    # --- Sidebar tab navigation ---
+    if 'main_tab' not in st.session_state:
+        st.session_state.main_tab = 'Principal'
+    tab_options = ['Principal', 'S&P 500', 'IBEX 35']
+    st.sidebar.title('Navegación')
+    selected_tab = st.sidebar.radio('Ir a:', tab_options, index=tab_options.index(st.session_state.main_tab))
+    if selected_tab != st.session_state.main_tab:
+        st.session_state.main_tab = selected_tab
+        st.session_state.current_page = 'main' if selected_tab == 'Principal' else f"index_{'sp500' if selected_tab == 'S&P 500' else 'ibex35'}"
+        st.rerun()
     init_favorites()
     # 1. Gestión de navegación
     if 'current_page' not in st.session_state:
@@ -571,10 +572,7 @@ def main():
         # Si estamos en la página principal, ejecutamos todo el código original
         # Aquí empieza el bloque de tu código original:
         # Add a sidebar button to go to the demo page
-        with st.sidebar:
-            if st.button("Ir a la página demo", key="go_to_demo"):
-                st.session_state.current_page = "demo_page"
-                st.rerun()
+        # Removed 'Ir a la página demo' button from sidebar
         col1, col2 = st.columns([1.2, 3])  # Make logo column a bit wider and closer
         with col1:
             st.markdown('''
