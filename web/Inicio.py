@@ -627,9 +627,20 @@ def main():
         if f_cols[2].button("📉", help= "Perdedores"): 
             st.session_state.filter_mode = "Perdedores"
             st.session_state.page = 0
-        if f_cols[3].button("📊", help= "Volatilidad"): 
+        if f_cols[3].button("📊", help= "Volatilidad"):
             st.session_state.filter_mode = "Volatilidad"
             st.session_state.page = 0
+
+        # --- Acceso rápido: Comparador y Recomendador ---
+        tool_cols = st.columns([1, 1, 6])
+        with tool_cols[0]:
+            if st.button("Comparador", key="go_comparator", use_container_width=True):
+                st.session_state.current_page = "comparison"
+                st.rerun()
+        with tool_cols[1]:
+            if st.button("Recomendador", key="go_advisor", use_container_width=True):
+                st.session_state.current_page = "advisor"
+                st.rerun()
 
         # Lógica de filtrado y búsqueda
         if search_term:
