@@ -1,11 +1,10 @@
 import os
 import json
-import yfinance as yf
-from config import ACCESS_TOKEN
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from tqdm import tqdm
+import yfinance as yf # type: ignore
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from tqdm import tqdm # type: ignore
 
 
 #Obtener tickers del sp500 ( las mejores empresas de eeuu, hay 500 pero usaremos estas 5 que son las mas importantes)
@@ -67,7 +66,7 @@ data_sp500 = {}
 
 for ticker in tqdm(tickers):
     try:
-        accion = yf.download(ticker, start='2020-01-01', end='2021-01-01', progress=False)
+        accion = yf.download(ticker, start='2020-01-01', end='2025-01-01', progress=False)
         
         if not accion.empty:
             accion = accion.reset_index()
