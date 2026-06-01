@@ -23,6 +23,7 @@ all_stats = {**calculate_stock_stats(sp500_data), **ibex35_stats}
 if 'ibex_stock' not in st.session_state:
     st.session_state.ibex_stock = None
 
+# --- DETALLE DE ACCIÓN ---
 if st.session_state.ibex_stock:
     symbol = st.session_state.ibex_stock
     if st.button("← Volver al IBEX 35", key="back_ibex"):
@@ -31,8 +32,9 @@ if st.session_state.ibex_stock:
     render_stock_detail(symbol, sp500_data, ibex35_data, news_data, all_stats)
     st.stop()
 
+# --- PÁGINA DEL ÍNDICE ---
 if st.button("← Inicio", key="back_main_ibex"):
-    st.switch_page("Inicio.py")
+    st.switch_page("streamlit_app.py")
 
 points, percent = calculate_index_price(ibex35_data)
 percent_color = "#00ff00" if percent >= 0 else "#ff4444"

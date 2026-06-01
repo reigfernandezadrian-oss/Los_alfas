@@ -4,17 +4,19 @@ import os
 import plotly.graph_objects as go
 from collections import defaultdict
 
+#python -m streamlit run web/streamlit_app.py
 
-def buscar_clave(mapping, fragment):
-    """Devuelve la primera clave que contiene el fragmento indicado."""
+def _find_key_with_fragment(mapping, fragment):
+    """Return the first key that contains the given fragment."""
     return next((k for k in mapping if fragment in k), None)
 
 
-def cambio_porcentual(first_value, latest_value):
+def _safe_percent_change(first_value, latest_value):
     if first_value == 0:
         return 0
     return ((latest_value - first_value) / first_value) * 100
 
+# Set page config
 st.set_page_config(
     page_title="Viltrum Stocks",
     page_icon="📈",
@@ -22,6 +24,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# Custom CSS (simplified)
 st.markdown("""
 <style>
     .main {
@@ -42,26 +45,32 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# Load data
 @st.cache_data
 def load_data():
+    # Obtener el directorio del script actual
     script_dir = os.path.dirname(os.path.abspath(__file__))
     parent_dir = os.path.dirname(script_dir)
 
     sp500_path = os.path.join(parent_dir, 'data', 'json_sp500.json')
     ibex35_path = os.path.join(parent_dir, 'data', 'json_ibex35.json')
+    # Ajuste de ruta para noticias según tu estructura
     news_path = os.path.join(parent_dir, 'data', 'Tickets.json')
 
+    # Cargar datos de índices
     with open(sp500_path, 'r') as f:
         sp500_data = json.load(f)
     with open(ibex35_path, 'r') as f:
         ibex35_data = json.load(f)
     
+    # Cargar noticias
     try:
         with open(news_path, 'r', encoding='utf-8') as f:
             news_data = json.load(f)
     except Exception:
         news_data = {}
         
+    # Un solo return al final con todo
     return sp500_data, ibex35_data, news_data
 def get_sentiment_style(sentiment_label):
     """Asigna colores e iconos según el sentimiento de la noticia."""
@@ -73,7 +82,7 @@ def get_sentiment_style(sentiment_label):
     return sentiments.get(sentiment_label.lower(), sentiments["neutral"])
 
 def calculate_stock_stats(data_dict):
-    """Calcula el último precio, el cambio porcentual y el volumen de cada acción."""
+    """Calculate latest price, percent change, and volume for each stock"""
     stock_stats = {}
 
     for symbol, data in data_dict.items():
@@ -82,9 +91,9 @@ def calculate_stock_stats(data_dict):
                 latest = data[-1]
                 earliest = data[0]
 
-                latest_close_key = buscar_clave(latest, 'Close')
-                earliest_close_key = buscar_clave(earliest, 'Close')
-                volume_key = buscar_clave(latest, 'Volume')
+                latest_close_key = _find_key_with_fragment(latest, 'Close')
+                earliest_close_key = _find_key_with_fragment(earliest, 'Close')
+                volume_key = _find_key_with_fragment(latest, 'Volume')
 
                 if latest_close_key and earliest_close_key and volume_key:
                     latest_close = latest[latest_close_key]
@@ -93,7 +102,7 @@ def calculate_stock_stats(data_dict):
 
                     stock_stats[symbol] = {
                         'latest_close': latest_close,
-                        'percent_change': cambio_porcentual(earliest_close, latest_close),
+                        'percent_change': _safe_percent_change(earliest_close, latest_close),
                         'volume': latest_volume
                     }
         except (KeyError, IndexError, TypeError):
@@ -102,18 +111,18 @@ def calculate_stock_stats(data_dict):
     return stock_stats
 
 def sort_stocks_by_value(stock_stats):
-    """Ordena las acciones por popularidad (volumen) y después por valor (precio)."""
+    """Sort stocks by popularity (volume) and then by value (price)"""
     return sorted(stock_stats.items(), key=lambda x: (-x[1]['volume'], -x[1]['latest_close']))
 
 def calculate_index_price(data_dict):
-    """Calcula el precio medio de cierre de todas las acciones por fecha."""
+    """Calculate average closing price across all stocks for each date"""
     date_prices = defaultdict(list)
 
     try:
         for symbol, data in data_dict.items():
             for entry in data:
                 date = entry.get("('Date', '')")
-                close_key = buscar_clave(entry, 'Close')
+                close_key = _find_key_with_fragment(entry, 'Close')
                 if close_key:
                     close_price = entry[close_key]
                     if date:
@@ -129,7 +138,7 @@ def calculate_index_price(data_dict):
         if len(sorted_data) >= 2:
             first_price = sorted_data[0][1]
             latest_price = sorted_data[-1][1]
-            percent_change = cambio_porcentual(first_price, latest_price)
+            percent_change = _safe_percent_change(first_price, latest_price)
         else:
             percent_change = 0
 
@@ -138,7 +147,7 @@ def calculate_index_price(data_dict):
         return [], 0
 
 def create_graph(data_points):
-    if not data_points:
+    if not data_points: # Evita errores si no hay datos
         return go.Figure()
 
     try:
@@ -152,9 +161,9 @@ def create_graph(data_points):
             xaxis_title="Date",
             yaxis_title="Price",
             template='plotly_dark',
-            paper_bgcolor='#0b1726',
+            paper_bgcolor='#0b1726', # Ajustado al color de tu fondo
             plot_bgcolor='#0b1726',
-            height=300,
+            height=300, # Redúcelo un poco para que quepa bien en las columnas
             margin=dict(l=10, r=10, t=10, b=10)
         )
         return fig
@@ -198,6 +207,7 @@ def render_news_section(symbol, news_dict):
 
 def get_stock_history(symbol, sp500_data, ibex35_data):
     """Busca los datos históricos de un ticker específico en ambos índices."""
+    # Buscar en S&P 500, si no está, buscar en IBEX 35
     data = sp500_data.get(symbol) or ibex35_data.get(symbol)
     
     if not data:
@@ -205,11 +215,13 @@ def get_stock_history(symbol, sp500_data, ibex35_data):
     
     points = []
     for entry in data:
+        # Usamos la misma lógica de fragmentos que ya tienes definida
         date = entry.get("('Date', '')")
-        close_key = buscar_clave(entry, 'Close')
+        close_key = _find_key_with_fragment(entry, 'Close')
         if date and close_key:
             points.append((date, entry[close_key]))
             
+    # Ordenar por fecha para que la gráfica sea correcta
     return sorted(points)
 def init_favorites():
     """Inicializa la lista de favoritos en el estado de la sesión si no existe."""
@@ -230,6 +242,7 @@ def render_favorites_section(sp500_stats, ibex35_stats):
     st.markdown("<h2 style='color: white;'>⭐ Mis Favoritos</h2>", unsafe_allow_html=True)
     
     if st.session_state.favorites:
+        # Mostramos hasta 6 columnas por fila
         favs = st.session_state.favorites
         cols = st.columns(min(len(favs), 6))
         
@@ -258,6 +271,7 @@ def create_comparison_graph(tickers_data):
         if not points: continue
         dates = [p[0] for p in points]
         prices = [p[1] for p in points]
+        # Normalización a base 100 para comparar rendimiento real
         initial_price = prices[0]
         relative_returns = [((p / initial_price) - 1) * 100 for p in prices]
         fig.add_trace(go.Scatter(x=dates, y=relative_returns, mode='lines', name=symbol))
@@ -270,11 +284,13 @@ def create_comparison_graph(tickers_data):
     return fig
 
 def render_comparison_page(sp500_data, ibex35_data):
+    # Botón circular de volver en la esquina o arriba
     if st.button("←", key="back_to_main", help="Volver al panel principal"):
         st.session_state.current_page = "main"
         st.rerun()
         
     st.markdown("<h1 style='color: white; text-align: center;'>⚖️ Comparador</h1>", unsafe_allow_html=True)
+    # ... resto de la lógica de comparación
 
     available_tickers = sorted(list(sp500_data.keys()) + list(ibex35_data.keys()))
     
@@ -300,13 +316,14 @@ def get_recommendation(symbol, sp500_data, ibex35_data):
     if len(history) < 5:
         return "NEUTRAL", "Faltan datos", "#8899ac"
     
+    # Comparamos el precio actual con la media de los últimos 5 días
     latest_price = history[-1][1]
     last_5_days = [p[1] for p in history[-5:]]
     avg_5_days = sum(last_5_days) / 5
     
-    if latest_price > avg_5_days * 1.02:
+    if latest_price > avg_5_days * 1.02: # 2% por encima de la media
         return "COMPRAR", "Tendencia Alcista Fuerte", "#00c853"
-    elif latest_price < avg_5_days * 0.98:
+    elif latest_price < avg_5_days * 0.98: # 2% por debajo de la media
         return "VENDER", "Tendencia Bajista Detectada", "#d32f2f"
     else:
         return "MANTENER", "Estabilidad de precio", "#ffab00"
@@ -331,6 +348,7 @@ def render_advisor_page(sp500_data, ibex35_data):
             </div>
         """, unsafe_allow_html=True)
         
+        # Mostrar pequeño gráfico de contexto
         history = get_stock_history(selected, sp500_data, ibex35_data)
         st.plotly_chart(create_graph(history), use_container_width=True)
 def render_stock_detail_page(symbol, sp500_data, ibex35_data, news_data, all_stats):
@@ -411,6 +429,7 @@ def render_index_page(title, index_key, data_dict, stats, news_data, sp500_data,
 
     st.markdown("<h2 style='color: white; margin-top: 30px;'>Empresas del Índice</h2>", unsafe_allow_html=True)
 
+    # Header de la tabla
     hcols = st.columns([2, 2, 2, 2, 1])
     for col, label in zip(hcols, ["Símbolo", "Precio", "Cambio %", "Volumen", ""]):
         col.markdown(f"<span style='color: #8899ac; font-size: 12px; text-transform: uppercase; font-weight: bold;'>{label}</span>", unsafe_allow_html=True)
@@ -445,11 +464,11 @@ def render_full_graph_page(title, data_dict, is_index=True, symbol=None):
     if is_index:
         points, _ = calculate_index_price(data_dict)
     else:
-        points = get_stock_history(symbol, data_dict[0], data_dict[1])
+        points = get_stock_history(symbol, data_dict[0], data_dict[1]) # data_dict sería una tupla (sp500, ibex)
 
     if points:
         fig = create_graph(points)
-        fig.update_layout(height=600)
+        fig.update_layout(height=600) # Gráfica mucho más grande
         st.plotly_chart(fig, use_container_width=True)
     else:
         st.error("No se pudieron cargar los datos de la gráfica.")
@@ -465,6 +484,7 @@ def render_index_panel(title, data_dict):
     
     if points:
         st.plotly_chart(create_graph(points), use_container_width=False)
+        # Botón ancho debajo de la gráfica
         button_style = """
             <style>
             .full-width-btn { width: 100%; display: block; margin-top: 12px; }
@@ -482,6 +502,7 @@ def render_index_panel(title, data_dict):
             else:
                 st.session_state.current_page = f"index_{title.lower().replace(' ', '')}"
             st.rerun()
+# Ejemplo de lógica para el "Market Pulse"
 def render_market_pulse(all_stats):
     ups = len([s for s in all_stats.values() if s['percent_change'] > 0])
     total = len(all_stats)
@@ -501,6 +522,7 @@ def render_market_pulse(all_stats):
     """, unsafe_allow_html=True)
 
 def main():
+    # --- Sidebar tab navigation ---
     if 'main_tab' not in st.session_state:
         st.session_state.main_tab = 'Principal'
     tab_options = ['Principal', 'S&P 500', 'IBEX 35']
@@ -511,6 +533,7 @@ def main():
         st.session_state.current_page = 'main' if selected_tab == 'Principal' else f"index_{'sp500' if selected_tab == 'S&P 500' else 'ibex35'}"
         st.rerun()
     init_favorites()
+    # 1. Gestión de navegación
     if 'current_page' not in st.session_state:
         st.session_state.current_page = "main"
 
@@ -519,6 +542,7 @@ def main():
     ibex35_stats = calculate_stock_stats(ibex35_data)
     all_stats = {**sp500_stats, **ibex35_stats}
 
+    # 2. Selector de página
     if st.session_state.current_page == "comparison":
         render_comparison_page(sp500_data, ibex35_data)
     elif st.session_state.current_page == "advisor":
@@ -527,6 +551,7 @@ def main():
         render_full_graph_page("S&P 500", sp500_data)
     elif st.session_state.current_page == "full_ibex35":
         render_full_graph_page("IBEX 35", ibex35_data)
+    # Eliminado el custom_ibex35 para que no se navegue a esa página
     elif st.session_state.current_page == "full_ticker":
         render_full_graph_page(st.session_state.selected_ticker_full, (sp500_data, ibex35_data), is_index=False, symbol=st.session_state.selected_ticker_full)
     elif st.session_state.current_page == "demo_page":
@@ -544,7 +569,11 @@ def main():
             if st.button("Volver", key="back_from_demo"):
                 st.session_state.current_page = "main"
                 st.rerun()
-        col1, col2 = st.columns([1.2, 3])
+        # Si estamos en la página principal, ejecutamos todo el código original
+        # Aquí empieza el bloque de tu código original:
+        # Add a sidebar button to go to the demo page
+        # Removed 'Ir a la página demo' button from sidebar
+        col1, col2 = st.columns([1.2, 3])  # Make logo column a bit wider and closer
         with col1:
             st.markdown('''
             <div style="display: flex; align-items: center; gap: 10px;">
@@ -561,6 +590,7 @@ def main():
 
         all_stocks = sort_stocks_by_value(all_stats)
 
+        # --- ALERTAS MEJORADAS ---
         for fav in st.session_state.favorites:
             stats = all_stats.get(fav)
             if stats:
@@ -571,6 +601,7 @@ def main():
                             ⚠️ <b>ALERTA VOLATILIDAD:</b> {fav} ha movido un <span style="color:{color}">{stats['percent_change']:.2f}%</span>
                         </div>
                     """, unsafe_allow_html=True)
+                # Alerta por noticia negativa
                 news = news_data.get(fav)
                 if news:
                     noticia = news[0] if isinstance(news, list) else news
@@ -581,6 +612,7 @@ def main():
                             </div>
                         """, unsafe_allow_html=True)
 
+        # --- IDEA 2: FILTROS RÁPIDOS ---
         if 'filter_mode' not in st.session_state: 
             st.session_state.filter_mode = "Todos"
         
@@ -599,6 +631,7 @@ def main():
             st.session_state.filter_mode = "Volatilidad"
             st.session_state.page = 0
 
+        # --- Acceso rápido: Comparador y Recomendador ---
         tool_cols = st.columns([1, 1, 6])
         with tool_cols[0]:
             if st.button("Comparador", key="go_comparator", use_container_width=True):
@@ -609,6 +642,7 @@ def main():
                 st.session_state.current_page = "advisor"
                 st.rerun()
 
+        # Lógica de filtrado y búsqueda
         if search_term:
             filtered_stocks = [(symbol, stats) for symbol, stats in all_stocks if search_term.lower() in symbol.lower()]
         else:
@@ -632,6 +666,7 @@ def main():
         end_idx = start_idx + stocks_per_page
         current_stocks = filtered_stocks[start_idx:end_idx]
 
+        # Create a row with left button, stocks, right button (make arrows closer)
         row = st.columns([0.5, 11, 0.5])
         with row[0]:
             if st.button("←", disabled=st.session_state.page == 0, key="left", help="Previous"):
@@ -674,11 +709,12 @@ def main():
 
         st.markdown("---")
         
+        # ... (continúa con el bloque col1, col2, col3 de los índices)
 
         col1, col2, col3 = st.columns([1, 1, 1])
 
         with col1:
-            render_index_panel("S&P 500", sp500_data)
+            render_index_panel("S&P 500", sp500_data) # Asegúrate que dentro use use_container_width=True
 
         with col2:
             st.markdown("""
@@ -693,7 +729,9 @@ def main():
             """, unsafe_allow_html=True)
         with col3:
             render_index_panel("IBEX 35", ibex35_data)
+        # ... (Después de que se dibujen los paneles de S&P500 e IBEX)
         
+        # --- TOP MOVERS (BOTTOM) ---
         st.markdown("<hr style='margin: 40px 0 10px 0; border: 1px solid #222;'>", unsafe_allow_html=True)
         st.markdown("<h2 style='color: white; font-size: 22px;'>Top Acciones del Día</h2>", unsafe_allow_html=True)
         top_gainers = sorted(all_stocks, key=lambda x: x[1]['percent_change'], reverse=True)[:3]
@@ -717,22 +755,29 @@ def main():
             """, unsafe_allow_html=True)
 
 
+        # --- SECCIÓN DE NOTICIAS PAGINADA ---
         st.markdown("<h2 style='color: white; font-size: 24px; text-align: center;'>Últimas Noticias</h2>", unsafe_allow_html=True)
+        # Cargar y combinar noticias de Tickets.json y UltimasNoticias.json
         try:
             ultimas_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'UltimasNoticias.json')
             with open(ultimas_path, 'r', encoding='utf-8') as f:
                 ultimas_news = json.load(f)
         except Exception:
             ultimas_news = {}
+        # Combinar news_data y ultimas_news en una sola lista
         all_news_items = []
+        # Tickets.json
         for symbol, news_list in news_data.items():
             for noticia in news_list:
                 all_news_items.append((symbol, noticia))
+        # UltimasNoticias.json
         for symbol, news_list in ultimas_news.items():
             for noticia in news_list:
                 all_news_items.append((symbol, noticia))
+        # Ordenar por publisher y título para variedad (puedes cambiar esto por fecha si tienes)
         all_news_items = sorted(all_news_items, key=lambda x: (x[1].get('publisher', ''), x[1].get('title', '')))
 
+        # Paginación: mostrar 5 noticias por página
         if 'news_page' not in st.session_state:
             st.session_state.news_page = 0
         news_per_page = 5
@@ -764,11 +809,13 @@ def main():
             """, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
+        # Botones de paginación
         nav_cols = st.columns([1, 0.2, 16])
         with nav_cols[0]:
             if st.button("←", disabled=st.session_state.news_page == 0, key="news_prev"):
                 st.session_state.news_page -= 1
                 st.rerun()
+        # nav_cols[1] is just for spacing
         with nav_cols[2]:
             right_cols = st.columns([30, 1])
             with right_cols[1]:
@@ -783,8 +830,10 @@ def main():
 if __name__ == "__main__":
     main()
 
+# --- Custom IBEX35 Page ---
 def render_custom_ibex35_page(ibex35_data):
     import streamlit as st
+    # Top row: Logo (left), Search bar (right)
     col_logo, col_search = st.columns([1, 3])
     with col_logo:
         st.markdown("""
@@ -800,6 +849,7 @@ def render_custom_ibex35_page(ibex35_data):
     with col_search:
         search_term = st.text_input("", placeholder="Buscar acción en IBEX35", label_visibility="collapsed", key="ibex35_search")
 
+    # Main IBEX35 Graph
     points, percent = calculate_index_price(ibex35_data)
     st.markdown(f"<h1 style='color: white; text-align: center;'>IBEX 35</h1>", unsafe_allow_html=True)
     if points:
@@ -809,6 +859,7 @@ def render_custom_ibex35_page(ibex35_data):
     else:
         st.error("No se pudieron cargar los datos de IBEX35.")
 
+    # List all IBEX35 stocks below, sorted by value (latest_close)
     ibex35_stats = calculate_stock_stats(ibex35_data)
     sorted_stocks = sorted(ibex35_stats.items(), key=lambda x: -x[1]['latest_close'])
     if search_term:
@@ -833,6 +884,7 @@ def render_custom_ibex35_page(ibex35_data):
     else:
         st.info("No se encontraron acciones que coincidan con la búsqueda.")
 
+    # Back button
     if st.button("← Volver", key="back_from_custom_ibex35"):
         st.session_state.current_page = "main"
         st.rerun()

@@ -23,6 +23,7 @@ all_stats = {**sp500_stats, **calculate_stock_stats(ibex35_data)}
 if 'sp500_stock' not in st.session_state:
     st.session_state.sp500_stock = None
 
+# --- DETALLE DE ACCIÓN ---
 if st.session_state.sp500_stock:
     symbol = st.session_state.sp500_stock
     if st.button("← Volver al S&P 500", key="back_sp500"):
@@ -31,8 +32,9 @@ if st.session_state.sp500_stock:
     render_stock_detail(symbol, sp500_data, ibex35_data, news_data, all_stats)
     st.stop()
 
+# --- PÁGINA DEL ÍNDICE ---
 if st.button("← Inicio", key="back_main_sp500"):
-    st.switch_page("Inicio.py")
+    st.switch_page("streamlit_app.py")
 
 points, percent = calculate_index_price(sp500_data)
 percent_color = "#00ff00" if percent >= 0 else "#ff4444"
@@ -55,8 +57,10 @@ if points:
 
 st.markdown("<h2 style='color: white; margin-top: 30px;'>Empresas del Índice</h2>", unsafe_allow_html=True)
 
+# Buscador
 search = st.text_input("", placeholder="Buscar símbolo...", label_visibility="collapsed", key="sp500_search")
 
+# Header tabla
 hcols = st.columns([2, 2, 2, 2, 1])
 for col, label in zip(hcols, ["Símbolo", "Precio", "Cambio %", "Volumen", ""]):
     col.markdown(
