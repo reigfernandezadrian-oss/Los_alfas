@@ -7,43 +7,42 @@ import numpy as np
 from tqdm import tqdm
 
 
-# Tickers del IBEX 35 (formato Yahoo Finance: símbolo + .MC para Mercado Continuo de Madrid)
 tickers = [
-    "ACS.MC",    # ACS, Actividades de Construcción y Servicios
-    "ACX.MC",    # Acerinox
-    "AENA.MC",   # Aena
-    "AMS.MC",    # Amadeus IT Group
-    "ANA.MC",    # Acciona
-    "ANE.MC",    # Corporación Acciona Energías Renovables
-    "BBVA.MC",   # Banco Bilbao Vizcaya Argentaria
-    "BKT.MC",    # Bankinter
-    "CABK.MC",   # CaixaBank
-    "CLNX.MC",   # Cellnex Telecom
-    "COL.MC",    # Inmobiliaria Colonial
-    "ELE.MC",    # Endesa
-    "ENG.MC",    # Enagás
-    "FDR.MC",    # Fluidra
-    "FER.MC",    # Ferrovial
-    "GRF.MC",    # Grifols
-    "IAG.MC",    # International Airlines Group
-    "IBE.MC",    # Iberdrola
-    "IDR.MC",    # Indra Sistemas
-    "ITX.MC",    # Inditex
-    "LOG.MC",    # Logista
-    "MAP.MC",    # MAPFRE
-    "MEL.MC",    # Meliá Hotels International
-    "MRL.MC",    # Merlin Properties
-    "MTS.MC",    # ArcelorMittal
-    "NTGY.MC",   # Naturgy Energy Group
-    "RED.MC",    # Redeia (Red Eléctrica)
-    "REP.MC",    # Repsol
-    "SAB.MC",    # Banco de Sabadell
-    "SAN.MC",    # Banco Santander
-    "SCYR.MC",   # Sacyr
-    "SLR.MC",    # Solaria Energía y Medio Ambiente
-    "TEF.MC",    # Telefónica
-    "UNI.MC",    # Unicaja Banco
-    "VIS.MC",    # Viscofan
+    "ACS.MC",
+    "ACX.MC",
+    "AENA.MC",
+    "AMS.MC",
+    "ANA.MC",
+    "ANE.MC",
+    "BBVA.MC",
+    "BKT.MC",
+    "CABK.MC",
+    "CLNX.MC",
+    "COL.MC",
+    "ELE.MC",
+    "ENG.MC",
+    "FDR.MC",
+    "FER.MC",
+    "GRF.MC",
+    "IAG.MC",
+    "IBE.MC",
+    "IDR.MC",
+    "ITX.MC",
+    "LOG.MC",
+    "MAP.MC",
+    "MEL.MC",
+    "MRL.MC",
+    "MTS.MC",
+    "NTGY.MC",
+    "RED.MC",
+    "REP.MC",
+    "SAB.MC",
+    "SAN.MC",
+    "SCYR.MC",
+    "SLR.MC",
+    "TEF.MC",
+    "UNI.MC",
+    "VIS.MC",
 ]
 
 data_ibex35 = {}
