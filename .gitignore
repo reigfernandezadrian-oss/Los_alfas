@@ -1,3 +1,9 @@
+# Datos generados (no subir a git: pesados, se generan en el build de Docker)
+data/*.json
+data/*.csv
+data/*.xlsx
+data/clean_Excel/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
