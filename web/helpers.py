@@ -35,11 +35,11 @@ DARK_CSS = """
 """
 
 
-def _find_key_with_fragment(mapping, fragment):
+def buscar_clave(mapping, fragment):
     return next((k for k in mapping if fragment in k), None)
 
 
-def _safe_percent_change(first_value, latest_value):
+def cambio_porcentual(first_value, latest_value):
     if first_value == 0:
         return 0
     return ((latest_value - first_value) / first_value) * 100
@@ -83,13 +83,13 @@ def calculate_stock_stats(data_dict):
             if len(data) >= 2:
                 latest = data[-1]
                 earliest = data[0]
-                latest_close_key = _find_key_with_fragment(latest, 'Close')
-                earliest_close_key = _find_key_with_fragment(earliest, 'Close')
-                volume_key = _find_key_with_fragment(latest, 'Volume')
+                latest_close_key = buscar_clave(latest, 'Close')
+                earliest_close_key = buscar_clave(earliest, 'Close')
+                volume_key = buscar_clave(latest, 'Volume')
                 if latest_close_key and earliest_close_key and volume_key:
                     stock_stats[symbol] = {
                         'latest_close': latest[latest_close_key],
-                        'percent_change': _safe_percent_change(earliest[earliest_close_key], latest[latest_close_key]),
+                        'percent_change': cambio_porcentual(earliest[earliest_close_key], latest[latest_close_key]),
                         'volume': latest[volume_key]
                     }
         except (KeyError, IndexError, TypeError):
@@ -107,7 +107,7 @@ def calculate_index_price(data_dict):
         for symbol, data in data_dict.items():
             for entry in data:
                 date = entry.get("('Date', '')")
-                close_key = _find_key_with_fragment(entry, 'Close')
+                close_key = buscar_clave(entry, 'Close')
                 if close_key and date:
                     date_prices[date].append(entry[close_key])
 
@@ -115,7 +115,7 @@ def calculate_index_price(data_dict):
         sorted_data = sorted(avg_prices.items())
 
         if len(sorted_data) >= 2:
-            percent_change = _safe_percent_change(sorted_data[0][1], sorted_data[-1][1])
+            percent_change = cambio_porcentual(sorted_data[0][1], sorted_data[-1][1])
         else:
             percent_change = 0
 
@@ -151,7 +151,7 @@ def get_stock_history(symbol, sp500_data, ibex35_data):
     points = []
     for entry in data:
         date = entry.get("('Date', '')")
-        close_key = _find_key_with_fragment(entry, 'Close')
+        close_key = buscar_clave(entry, 'Close')
         if date and close_key:
             points.append((date, entry[close_key]))
     return sorted(points)
