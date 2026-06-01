@@ -2,7 +2,6 @@ import json
 import random
 from datetime import datetime, timedelta
 
-# Helper to generate a new day (skip weekends)
 def next_weekday(d):
     d += timedelta(days=1)
     while d.weekday() >= 5:
@@ -13,10 +12,9 @@ def generate_entries(symbol, last_entry, years=4):
     entries = []
     date = datetime.strptime(last_entry["('Date', '')"], "%Y-%m-%d")
     close = last_entry[[k for k in last_entry if 'Close' in k][0]]
-    for _ in range(252 * years):  # ~252 trading days per year
+    for _ in range(252 * years):
         date = next_weekday(date)
-        # Simulate realistic price movement
-        pct_change = random.gauss(0.0003, 0.015)  # slight upward drift, realistic volatility
+        pct_change = random.gauss(0.0003, 0.015)
         close = round(close * (1 + pct_change), 2)
         high = round(close * (1 + abs(random.gauss(0.002, 0.01))), 2)
         low = round(close * (1 - abs(random.gauss(0.002, 0.01))), 2)
@@ -38,7 +36,7 @@ def extend_json(path):
         data = json.load(f)
     for symbol, arr in data.items():
         last_entry = arr[-1]
-        new_entries = generate_entries(symbol, last_entry, years=5-1)  # 2021-2025
+        new_entries = generate_entries(symbol, last_entry, years=5-1)
         arr.extend(new_entries)
     with open(path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=4)
