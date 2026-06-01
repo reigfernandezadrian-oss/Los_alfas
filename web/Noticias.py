@@ -12,7 +12,6 @@ from datos_sp500 import tickers as tikers2
 todotikers = tikers1 + tikers2
 try:
     for accion in todotikers:
-        # Obtener noticias de accion
         ticker_obj = yf.Ticker(accion)
         noticias_completas = ticker_obj.news
         noticias_recientes = noticias_completas[:2]
