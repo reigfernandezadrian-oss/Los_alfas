@@ -4,7 +4,7 @@ import os
 
 
 # Cargar el JSON con los datos del SP500
-with open("data/json/json_sp500.json", "r", encoding="utf-8") as f:
+with open("data/json_sp500.json", "r", encoding="utf-8") as f:
     data_sp500 = json.load(f)
 
 # Aplanar el JSON: cada ticker tiene una lista de registros con columnas MultiIndex
@@ -52,20 +52,10 @@ if columnas_precio_presentes:
 df = df.sort_values(by=["Ticker", "Date"]).reset_index(drop=True)
 
 # Guardar como CSV
-df.to_csv("data/clean_Excel/clean_sp500.csv", index=False, encoding="utf-8")
+df.to_csv("data/clean_sp500.csv", index=False, encoding="utf-8")
 
-print(f"CSV limpio guardado en data/clean_Excel/clean_sp500.csv")
+print(f"CSV limpio guardado en data/clean_sp500.csv")
 print(f"Total de filas: {len(df)}")
 print(f"Tickers encontrados: {df['Ticker'].nunique()}")
 print(f"\nPrimeras filas:")
 print(df.head(10))
-
-# Guardar como xlsx
-df.to_csv("data/clean_Excel/clean_sp500.xlsx", index=False, encoding="utf-8")
-
-print(f"CSV limpio guardado en data/clean_Excel/clean_sp500.xlsx")
-print(f"Total de filas: {len(df)}")
-print(f"Tickers encontrados: {df['Ticker'].nunique()}")
-print(f"\nPrimeras filas:")
-print(df.head(10))
-

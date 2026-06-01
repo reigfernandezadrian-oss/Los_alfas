@@ -1,11 +1,10 @@
 import os
 import json
-import yfinance as yf
-from config import ACCESS_TOKEN
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-from tqdm import tqdm
+import yfinance as yf # type: ignore
+import pandas as pd # type: ignore
+import numpy as np # type: ignore
+import matplotlib.pyplot as plt # type: ignore
+from tqdm import tqdm # type: ignore
 
 
 #Obtener tickers del sp500 ( las mejores empresas de eeuu, hay 500 pero usaremos estas 5 que son las mas importantes)
@@ -80,7 +79,7 @@ for ticker in tqdm(tickers):
     except Exception as e:
         print(f"Error en {ticker}: {e}")
 
-with open("data/json/json_sp500.json", "w", encoding= "utf-8") as bolsa500:
+with open("data/json_sp500.json", "w", encoding= "utf-8") as bolsa500:
     json.dump(data_sp500,bolsa500,indent=4,ensure_ascii=False)
 
 

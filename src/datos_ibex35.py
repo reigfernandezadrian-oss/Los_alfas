@@ -63,5 +63,5 @@ for ticker in tqdm(tickers):
     except Exception as e:
         print(f"Error en {ticker}: {e}")
 
-with open("data/json/json_ibex35.json", "w", encoding="utf-8") as bolsa35:
+with open("data/json_ibex35.json", "w", encoding="utf-8") as bolsa35:
     json.dump(data_ibex35, bolsa35, indent=4, ensure_ascii=False)
