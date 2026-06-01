@@ -1,0 +1,4 @@
+.git
+notebooks/
+data/*.json
+data/*.csv
